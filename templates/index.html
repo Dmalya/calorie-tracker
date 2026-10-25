@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calorie Tracker</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      font-size: 14px;
+    }
+
+    header {
+      background: #1d1d1f;
+      color: white;
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    header h1 { font-size: 18px; font-weight: 600; }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid #555;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .tab-btn.active {
+      background: white;
+      color: #1d1d1f;
+      border-color: white;
+    }
+
+    .tab-content { display: none; padding: 24px 32px; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1d1d1f;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      color: #6e6e73;
+      font-weight: 500;
+    }
+
+    input, select {
+      padding: 8px 10px;
+      border: 1px solid #d2d2d7;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      background: white;
+    }
+
+    input:focus, select:focus {
+      border-color: #0071e3;
+    }
+
+    button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .btn-primary { background: #0071e3; color: white; }
+    .btn-primary:hover { background: #0077ed; }
+    .btn-danger { background: #ff3b30; color: white; }
+    .btn-danger:hover { background: #e0352b; }
+    .btn-secondary { background: #e5e5ea; color: #1d1d1f; }
+    .btn-secondary:hover { background: #d8d8dd; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 12px;
+      color: #6e6e73;
+      font-weight: 500;
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e5ea;
+    }
+
+    td {
+      padding: 10px 10px;
+      border-bottom: 1px solid #f2f2f7;
+      font-size: 14px;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .totals-row td {
+      font-weight: 600;
+      border-top: 2px solid #e5e5ea;
+      border-bottom: none;
+    }
+
+    .burnt-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .summary-chips {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      background: #f2f2f7;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+
+    .chip span {
+      font-weight: 600;
+      font-size: 16px;
+      display: block;
+    }
+
+    /* Weekly stats colors */
+    .deficit { background: #d4edda; color: #155724; }
+    .surplus { background: #f8d7da; color: #721c24; }
+    .neutral { background: #f2f2f7; color: #1d1d1f; }
+
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .week-nav span {
+      font-weight: 600;
+      font-size: 14px;
+      min-width: 200px;
+      text-align: center;
+    }
+
+    .weekly-totals {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .weekly-chip {
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .msg { font-size: 13px; margin-top: 8px; min-height: 18px; }
+    .msg.success { color: #34c759; }
+    .msg.error { color: #ff3b30; }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .date-nav span {
+      font-weight: 600;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🥗 Calorie Tracker</h1>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('log')">Daily Log</button>
+    <button class="tab-btn" onclick="showTab('inventory')">Inventory</button>
+    <button class="tab-btn" onclick="showTab('weekly')">Weekly Stats</button>
+  </div>
+</header>
+
+<!-- ========== DAILY LOG TAB ========== -->
+<div id="tab-log" class="tab-content active">
+
+  <div class="card">
+    <h2>Log Food</h2>
+    <div class="date-nav">
+      <button class="btn-secondary btn-sm" onclick="changeDay(-1)">◀</button>
+      <span id="log-date-label"></span>
+      <button class="btn-secondary btn-sm" onclick="changeDay(1)">▶</button>
+      <button class="btn-secondary btn-sm" onclick="goToday()">Today</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Food Item</label>
+        <select id="food-select" style="width:200px"></select>
+      </div>
+      <div class="form-group">
+        <label>Servings</label>
+        <input type="number" id="servings-input" value="1" min="0.1" step="0.5" style="width:80px"/>
+      </div>
+      <button class="btn-primary" onclick="addLogEntry()">Add</button>
+    </div>
+    <div class="msg" id="log-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Today's Entries</h2>
+    <table id="log-table">
+      <thead>
+        <tr>
+          <th>Food Item</th>
+          <th>Servings</th>
+          <th>Calories</th>
+          <th>Protein (g)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="log-tbody"></tbody>
+    </table>
+
+    <div class="summary-chips" id="log-summary">
+      <div class="chip">Consumed<span id="total-cal">0</span></div>
+      <div class="chip">Protein<span id="total-protein">0g</span></div>
+      <div class="chip">Burnt<span id="total-burnt">0</span></div>
+      <div class="chip" id="balance-chip">Balance<span id="total-balance">0</span></div>
+    </div>
+
+    <div class="burnt-row" style="margin-top:16px">
+      <div class="form-group">
+        <label>Calories Burnt</label>
+        <input type="number" id="burnt-input" min="0" step="10" placeholder="0" style="width:120px"/>
+      </div>
+      <button class="btn-primary" onclick="saveBurnt()">Save</button>
+      <span class="msg" id="burnt-msg"></span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========== INVENTORY TAB ========== -->
+<div id="tab-inventory" class="tab-content">
+
+  <div class="card">
+    <h2>Add Food Item</h2>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="inv-name" placeholder="e.g. Brown Rice" style="width:180px"/>
+      </div>
+      <div class="form-group">
+        <label>Calories / serving</label>
+        <input type="number" id="inv-cal" min="0" step="1" placeholder="200" style="width:130px"/>
+      </div>
+      <div class="form-group">
+        <label>Protein (g) / serving</label>
+        <input type="number" id="inv-protein" min="0" step="0.1" placeholder="5" style="width:130px"/>
+      </div>
+      <button class="btn-primary" onclick="addFoodItem()">Add</button>
+    </div>
+    <div class="msg" id="inv-msg"></div>
+  </div>
+
+  <div class="card">
+    <h2>Food Inventory</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Calories / serving</th>
+          <th>Protein (g) / serving</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="inv-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- ========== WEEKLY STATS TAB ========== -->
+<div id="tab-weekly" class="tab-content">
+
+  <div class="card">
+    <h2>Weekly Stats</h2>
+    <div class="week-nav">
+      <button class="btn-secondary btn-sm" onclick="changeWeek(-1)">◀ Prev</button>
+      <span id="week-label"></span>
+      <button class="btn-secondary btn-sm" onclick="changeWeek(1)">Next ▶</button>
+      <button class="btn-secondary btn-sm" onclick="goCurrentWeek()">This Week</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Consumed (kcal)</th>
+          <th>Burnt (kcal)</th>
+          <th>Balance (kcal)</th>
+          <th>Protein (g)</th>
+        </tr>
+      </thead>
+      <tbody id="weekly-tbody"></tbody>
+    </table>
+
+    <div class="weekly-totals" id="weekly-totals"></div>
+  </div>
+
+</div>
+
+<script>
+  // ---- State ----
+  let currentLogDate = new Date();
+  let weekStartDate = getMonday(new Date());
+
+  // ---- Utilities ----
+  function formatDate(d) {
+    return d.toISOString().split('T')[0];
+  }
+
+  function formatDisplay(d) {
+    return d.toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+  }
+
+  function getMonday(d) {
+    const day = d.getDay();
+    const diff = (day === 0) ? -6 : 1 - day;
+    const monday = new Date(d);
+    monday.setDate(d.getDate() + diff);
+    return monday;
+  }
+
+  function addDays(d, n) {
+    const result = new Date(d);
+    result.setDate(d.getDate() + n);
+    return result;
+  }
+
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'msg ' + type;
+    setTimeout(() => { el.textContent = ''; el.className = 'msg'; }, 3000);
+  }
+
+  // ---- Tabs ----
+  function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+    if (name === 'inventory') loadInventory();
+    if (name === 'weekly') loadWeeklyStats();
+  }
+
+  // ---- Daily Log ----
+  function changeDay(n) {
+    currentLogDate = addDays(currentLogDate, n);
+    loadLogTab();
+  }
+
+  function goToday() {
+    currentLogDate = new Date();
+    loadLogTab();
+  }
+
+  function loadLogTab() {
+    document.getElementById('log-date-label').textContent = formatDisplay(currentLogDate);
+    loadFoodSelect();
+    loadDailyLog();
+    loadBurnt();
+  }
+
+  async function loadFoodSelect() {
+    const res = await fetch('/api/food-items');
+    const items = await res.json();
+    const sel = document.getElementById('food-select');
+    sel.innerHTML = items.length === 0
+      ? '<option value="">— No items in inventory —</option>'
+      : items.map(i => `<option value="${i.id}">${i.name} (${i.calories_per_serving} kcal)</option>`).join('');
+  }
+
+  async function loadDailyLog() {
+    const res = await fetch(`/api/daily-log?date=${formatDate(currentLogDate)}`);
+    const entries = await res.json();
+    const tbody = document.getElementById('log-tbody');
+
+    if (entries.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:#6e6e73;text-align:center;padding:20px">No entries yet</td></tr>';
+      document.getElementById('total-cal').textContent = '0 kcal';
+      document.getElementById('total-protein').textContent = '0g';
+      updateBalanceChip(0, 0);
+      return;
+    }
+
+    let totalCal = 0, totalProtein = 0;
+    tbody.innerHTML = entries.map(e => {
+      totalCal += e.calories;
+      totalProtein += e.protein;
+      return `<tr>
+        <td>${e.food_item_name}</td>
+        <td>${e.servings}</td>
+        <td>${e.calories} kcal</td>
+        <td>${e.protein}g</td>
+        <td><button class="btn-danger btn-sm" onclick="deleteLogEntry(${e.id})">✕</button></td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('total-cal').textContent = Math.round(totalCal) + ' kcal';
+    document.getElementById('total-protein').textContent = Math.round(totalProtein) + 'g';
+
+    const burnt = parseFloat(document.getElementById('burnt-input').value) || 0;
+    updateBalanceChip(totalCal, burnt);
+  }
+
+  async function loadBurnt() {
+    const res = await fetch(`/api/calories-burnt?date=${formatDate(currentLogDate)}`);
+    const data = await res.json();
+    document.getElementById('burnt-input').value = data.calories_burnt || '';
+    document.getElementById('total-burnt').textContent = (data.calories_burnt || 0) + ' kcal';
+
+    const totalCal = parseTotalCal();
+    updateBalanceChip(totalCal, data.calories_burnt || 0);
+  }
+
+  function parseTotalCal() {
+    const text = document.getElementById('total-cal').textContent;
+    return parseFloat(text) || 0;
+  }
+
+  function updateBalanceChip(consumed, burnt) {
+    const balance = consumed - burnt;
+    const chip = document.getElementById('balance-chip');
+    const balEl = document.getElementById('total-balance');
+    balEl.textContent = (balance >= 0 ? '+' : '') + Math.round(balance) + ' kcal';
+    chip.className = 'chip ' + (burnt === 0 ? 'neutral' : (balance <= 0 ? 'deficit' : 'surplus'));
+  }
+
+  async function addLogEntry() {
+    const foodId = document.getElementById('food-select').value;
+    const servings = parseFloat(document.getElementById('servings-input').value);
+    if (!foodId) return showMsg('log-msg', 'Add food items to inventory first.', 'error');
+    if (!servings || servings <= 0) return showMsg('log-msg', 'Enter a valid serving size.', 'error');
+
+    const res = await fetch('/api/daily-log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: formatDate(currentLogDate), food_item_id: parseInt(foodId), servings })
+    });
+
+    if (res.ok) {
+      showMsg('log-msg', 'Entry added.', 'success');
+      loadDailyLog();
+    } else {
+      const err = await res.json();
+      showMsg('log-msg', err.detail || 'Error adding entry.', 'error');
+    }
+  }
+
+  async function deleteLogEntry(id) {
+    await fetch(`/api/daily-log/${id}`, { method: 'DELETE' });
+    loadDailyLog();
+  }
+
+  async function saveBurnt() {
+    const val = parseFloat(document.getElementById('burnt-input').value) || 0;
+    const res = await fetch('/api/calories-burnt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date: formatDate(currentLogDate), calories_burnt: val })
+    });
+    if (res.ok) {
+      showMsg('burnt-msg', 'Saved!', 'success');
+      document.getElementById('total-burnt').textContent = val + ' kcal';
+      updateBalanceChip(parseTotalCal(), val);
+      if (document.getElementById('tab-weekly').classList.contains('active')) loadWeeklyStats();
+    }
+  }
+
+  // ---- Inventory ----
+  async function loadInventory() {
+    const res = await fetch('/api/food-items');
+    const items = await res.json();
+    const tbody = document.getElementById('inv-tbody');
+    if (items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:#6e6e73;text-align:center;padding:20px">No items yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = items.map(i => `
+      <tr id="inv-row-${i.id}">
+        <td><input type="text" value="${i.name}" id="inv-name-${i.id}" style="width:160px"/></td>
+        <td><input type="number" value="${i.calories_per_serving}" id="inv-cal-${i.id}" style="width:100px"/></td>
+        <td><input type="number" value="${i.protein_per_serving}" id="inv-prot-${i.id}" style="width:100px"/></td>
+        <td style="display:flex;gap:6px;padding-top:10px">
+          <button class="btn-secondary btn-sm" onclick="updateFoodItem(${i.id})">Save</button>
+          <button class="btn-danger btn-sm" onclick="deleteFoodItem(${i.id})">Delete</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function addFoodItem() {
+    const name = document.getElementById('inv-name').value.trim();
+    const cal = parseFloat(document.getElementById('inv-cal').value);
+    const protein = parseFloat(document.getElementById('inv-protein').value);
+    if (!name) return showMsg('inv-msg', 'Enter a name.', 'error');
+    if (isNaN(cal) || cal < 0) return showMsg('inv-msg', 'Enter valid calories.', 'error');
+    if (isNaN(protein) || protein < 0) return showMsg('inv-msg', 'Enter valid protein.', 'error');
+
+    const res = await fetch('/api/food-items', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, calories_per_serving: cal, protein_per_serving: protein })
+    });
+
+    if (res.ok) {
+      showMsg('inv-msg', 'Item added.', 'success');
+      document.getElementById('inv-name').value = '';
+      document.getElementById('inv-cal').value = '';
+      document.getElementById('inv-protein').value = '';
+      loadInventory();
+    } else {
+      const err = await res.json();
+      showMsg('inv-msg', err.detail || 'Error.', 'error');
+    }
+  }
+
+  async function updateFoodItem(id) {
+    const name = document.getElementById(`inv-name-${id}`).value.trim();
+    const cal = parseFloat(document.getElementById(`inv-cal-${id}`).value);
+    const protein = parseFloat(document.getElementById(`inv-prot-${id}`).value);
+    const res = await fetch(`/api/food-items/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, calories_per_serving: cal, protein_per_serving: protein })
+    });
+    if (res.ok) loadInventory();
+  }
+
+  async function deleteFoodItem(id) {
+    await fetch(`/api/food-items/${id}`, { method: 'DELETE' });
+    loadInventory();
+  }
+
+  // ---- Weekly Stats ----
+  function changeWeek(n) {
+    weekStartDate = addDays(weekStartDate, n * 7);
+    loadWeeklyStats();
+  }
+
+  function goCurrentWeek() {
+    weekStartDate = getMonday(new Date());
+    loadWeeklyStats();
+  }
+
+  async function loadWeeklyStats() {
+    const weekEnd = addDays(weekStartDate, 6);
+    document.getElementById('week-label').textContent =
+      formatDisplay(weekStartDate) + ' – ' + formatDisplay(weekEnd);
+
+    const res = await fetch(`/api/weekly-stats?week_start=${formatDate(weekStartDate)}`);
+    const rows = await res.json();
+    const tbody = document.getElementById('weekly-tbody');
+
+    let totCon = 0, totBurnt = 0, totBal = 0, totProt = 0;
+
+    tbody.innerHTML = rows.map(r => {
+      const d = new Date(r.date + 'T00:00:00');
+      const dayLabel = d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' });
+      const balClass = r.burnt === 0 ? 'neutral' : (r.balance <= 0 ? 'deficit' : 'surplus');
+      const balSign = r.balance >= 0 ? '+' : '';
+      totCon += r.consumed; totBurnt += r.burnt; totBal += r.balance; totProt += r.protein;
+      return `<tr>
+        <td>${dayLabel}</td>
+        <td>${r.consumed}</td>
+        <td>${r.burnt}</td>
+        <td class="${balClass}" style="font-weight:500;border-radius:6px;padding:6px 10px">${balSign}${r.balance}</td>
+        <td>${r.protein}g</td>
+      </tr>`;
+    }).join('');
+
+    const totBalClass = totBurnt === 0 ? 'neutral' : (totBal <= 0 ? 'deficit' : 'surplus');
+    document.getElementById('weekly-totals').innerHTML = `
+      <div class="weekly-chip" style="background:#e8f4fd;color:#1d3557">Total Consumed: <strong>${Math.round(totCon)} kcal</strong></div>
+      <div class="weekly-chip" style="background:#e8f4fd;color:#1d3557">Total Burnt: <strong>${Math.round(totBurnt)} kcal</strong></div>
+      <div class="weekly-chip ${totBalClass}">Weekly Balance: <strong>${totBal >= 0 ? '+' : ''}${Math.round(totBal)} kcal</strong></div>
+      <div class="weekly-chip" style="background:#f2f2f7;color:#1d1d1f">Total Protein: <strong>${Math.round(totProt)}g</strong></div>
+    `;
+  }
+
+  // ---- Init ----
+  loadLogTab();
+</script>
+
+</body>
+</html>
